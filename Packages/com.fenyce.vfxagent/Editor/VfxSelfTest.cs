@@ -11,7 +11,11 @@ public static class VfxSelfTest
 {
     const string Dir = "Assets/VfxTests/SelfTest";
     const string Root = Dir + "/";
+#if VFXAGENT_VFX_17_6
     const string Src = "Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx";
+#else
+    const string Src = "Packages/com.unity.visualeffectgraph/Editor/Templates/02_Simple_Loop.vfx"; // 17.3 template name
+#endif
 
     sealed class Check
     {

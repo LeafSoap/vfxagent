@@ -13,6 +13,30 @@ using UnityEngine;
 
 public static class VfxGraphTool
 {
+    // ---------- version shims ----------
+    // VFXAGENT_VFX_17_6 is set by the asmdef's versionDefines when VFX Graph >= 17.6.0 (Unity 6000.6); otherwise the 17.3 (Unity 6000.3) API is used.
+
+    /// Prepares the graph for compile/import (17.6: PrepareGraph, 17.3: SanitizeForImport).
+    internal static void PrepareForCompile(VFXGraph g)
+    {
+#if VFXAGENT_VFX_17_6
+        g.PrepareGraph();
+#else
+        g.SanitizeForImport();
+#endif
+    }
+
+    /// Drops the cached authoring compile data before a forced reimport. 17.3 has no per-GUID cache; the reimport rebuilds it.
+    internal static void ForgetCompileCache(string assetPath)
+    {
+#if VFXAGENT_VFX_17_6
+        VFXGraph.UnregisterAuthoringCompileData(AssetDatabase.GUIDFromAssetPath(assetPath));
+#endif
+    }
+
+    /// Arguments for VFXGraph.SetCompilationMode: 17.6 takes (mode), 17.3 takes (mode, bool reimport).
+    internal static object[] ModeArgs(MethodInfo setMode, object mode) => setMode.GetParameters().Length == 2 ? new[] { mode, false } : new[] { mode };
+
     // ---------- access ----------
 
     /// The editable graph of a .vfx asset (the same instance the VFX Graph window edits).
@@ -24,7 +48,9 @@ public static class VfxGraphTool
         var resource = getRes.Invoke(null, new object[] { assetPath });
         if (resource == null) throw new ArgumentException("No VFX resource at " + assetPath);
         var ext = typeof(VFXGraph).Assembly.GetType("UnityEditor.VFX.VisualEffectResourceExtensions");
-        var getGraph = ext.GetMethod("GetGraph", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        // 17.6 names it GetGraph, 17.3 GetOrCreateGraph.
+        var getGraph = ext.GetMethod("GetGraph", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                    ?? ext.GetMethod("GetOrCreateGraph", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
         var graph = getGraph.Invoke(null, new object[] { resource }) as VFXGraph;
         if (graph == null) throw new InvalidOperationException("Resource has no graph: " + assetPath);
         return graph;
@@ -172,11 +198,15 @@ public static class VfxGraphTool
             Application.logMessageReceived += cb;
             try
             {
-                VFXGraph.UnregisterAuthoringCompileData(AssetDatabase.GUIDFromAssetPath(assetPath));
+                ForgetCompileCache(assetPath);
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                 sb.AppendLine("reimported " + assetPath);
                 var asset = AssetDatabase.LoadAssetAtPath<UnityEngine.VFX.VisualEffectAsset>(assetPath);
+#if VFXAGENT_VFX_17_6
                 foreach (var vfx in UnityEngine.Object.FindObjectsByType<UnityEngine.VFX.VisualEffect>())
+#else
+                foreach (var vfx in UnityEngine.Object.FindObjectsByType<UnityEngine.VFX.VisualEffect>(UnityEngine.FindObjectsSortMode.None))
+#endif
                 {
                     if (vfx.visualEffectAsset != asset) continue;
                     vfx.Reinit();
@@ -211,13 +241,17 @@ public static class VfxGraphTool
             object oldMode = getMode.Invoke(graph, null);
             try
             {
-                setMode.Invoke(graph, new[] { Enum.Parse(oldMode.GetType(), "Runtime") });
+                setMode.Invoke(graph, ModeArgs(setMode, Enum.Parse(oldMode.GetType(), "Runtime")));
                 sb.AppendLine($"compilation mode was {oldMode}, compiling as Runtime");
-                graph.PrepareGraph();
+                PrepareForCompile(graph);
                 graph.errorManager.RefreshCompilationReport();
                 var output = graph.Compile();
                 sb.AppendLine($"runtime compile success={output.success}");
+#if VFXAGENT_VFX_17_6
                 object desc = output.assetDesc;
+#else
+                object desc = output; // 17.3 keeps systemDesc, shaderSourceDesc... on the output itself
+#endif
                 foreach (var f in desc.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
                 {
                     var v = f.GetValue(desc);
@@ -238,7 +272,7 @@ public static class VfxGraphTool
                     foreach (var e in rep.GetDirtyModelErrors(m)) sb.AppendLine($"  ERR [{m.GetType().Name} {m.name}] {e.type}: {e.error} {e.description}");
             }
             catch (Exception e) { sb.AppendLine("FAILED: " + e); }
-            finally { setMode.Invoke(graph, new[] { oldMode }); Application.logMessageReceived -= cb; }
+            finally { setMode.Invoke(graph, ModeArgs(setMode, oldMode)); Application.logMessageReceived -= cb; }
             sb.AppendLine("log warnings/errors:" + (logs.Count == 0 ? " none" : "\n  " + string.Join("\n  ", logs)));
             System.IO.File.WriteAllText(outFile, sb.ToString());
         };

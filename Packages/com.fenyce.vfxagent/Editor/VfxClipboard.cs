@@ -537,7 +537,11 @@ public static class VfxClipboard
     static string UniqueName(VFXGraph graph, string wanted)
     {
         var names = new HashSet<string>(graph.children.OfType<VFXParameter>().Select(x => x.exposedName), StringComparer.OrdinalIgnoreCase);
+#if VFXAGENT_VFX_17_6
         return VFXParameterController.MakeNameUnique(wanted, names, true, VFXParameterController.kMaxExposedNameLength);
+#else
+        return VFXParameterController.MakeNameUnique(wanted, names, true); // 17.3 has no name-length limit
+#endif
     }
 
     static int VisualIndex(VFXParameter p, VFXSlot output, VFXSlot input)

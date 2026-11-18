@@ -5,6 +5,7 @@
 # Visual Effect Inspector without touching the graph.
 #
 #   Template: Packages/com.unity.visualeffectgraph/Editor/Templates/Simple_Loop.vfx
+#   (Unity 6000.3 / VFX Graph 17.3 names it 02_Simple_Loop.vfx: change the `copy` line below.)
 #
 # The `copy` below makes a NEW asset under Assets/; the package template is never modified.
 # `save` + `compile` (systems > 0) confirm the effect still compiles after the edits.

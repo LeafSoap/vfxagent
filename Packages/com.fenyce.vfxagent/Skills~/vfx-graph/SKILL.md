@@ -58,7 +58,8 @@ Selectors: `Spawn` / `Init` / `Update` / `Output` (or `Output:<TypeName>`, e.g. 
 `<Kind>@<name>` picks a context by its name or system title (e.g. `Spawn@spawn Circle U`); `#<id>` picks a
 context made by `addctx`, `addsubgraph ctx` or `clippaste` earlier in the same script. Block selector = the block's name (substring ok);
 `"name#n"` = the n-th block with that name (0-based).
-- `copy <src.vfx> <dst.vfx>` - copy (replacing dst) and make dst the target.
+- `copy <src.vfx> <dst.vfx>` - copy (replacing dst) and make dst the target. Package templates are in
+  `Packages/com.unity.visualeffectgraph/Editor/Templates/`: `Simple_Loop.vfx` on VFX Graph 17.6, `02_Simple_Loop.vfx` on 17.3.
 - `open <path.vfx>` - target an existing graph.
 - `newsubgraph <operator|block> <path>` - create and save an empty `.vfxoperator` / `.vfxblock` and make it the
   current target. The extension must match and the file must not exist; a block also gets its required

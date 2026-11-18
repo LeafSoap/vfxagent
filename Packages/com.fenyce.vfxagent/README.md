@@ -50,8 +50,9 @@ All tool sources live in `Editor/`. See the repository README for the full guide
 
 ## Requirements
 
-- Unity **6000.6** (the package pins `"unity": "6000.6"`).
-- VFX Graph **17.6.0** — declared as a dependency, so UPM resolves it automatically.
+- Unity **6000.6** or **6000.3 LTS** (the package declares the minimum, `"unity": "6000.3"`).
+- VFX Graph **17.6.0** or **17.3.0** — the version built into the editor. On 17.3 the templates have numbered names
+  (`02_Simple_Loop.vfx`).
 - The **`unity` CLI** (the `com.unity.pipeline` package) to drive it. The package's C# has no dependency on pipeline
   assemblies; the CLI is only the transport you call it through.
 

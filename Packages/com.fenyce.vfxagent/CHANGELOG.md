@@ -4,6 +4,19 @@ All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the version follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Unity 6000.3 LTS / VFX Graph 17.3 support alongside 6000.6 / 17.6. The asmdef sets `VFXAGENT_VFX_17_6` for
+  VFX Graph >= 17.6.0; without it the 17.3 API is used (`SanitizeForImport` for `PrepareGraph`, no
+  `UnregisterAuthoringCompileData`, compile descriptors on the compile output instead of `assetDesc`,
+  `MakeNameUnique` without the length limit, `FindObjectsByType` with a sort mode, template `02_Simple_Loop.vfx`).
+  `GetGraph` / `GetOrCreateGraph` and the `SetCompilationMode` signature are resolved at runtime.
+
+### Changed
+- `package.json` now declares the minimum: `"unity": "6000.3"`, `com.unity.visualeffectgraph` `17.3.0`
+  (UPM uses the VFX Graph version built into the editor, 17.6.0 on 6000.6).
+
 ## [0.1.1] - 2026-11-09
 
 ### Added

@@ -582,8 +582,8 @@ public static class VfxGraphOps
                         foreach (var parentPath in parents)
                         {
                             var parent = VfxGraphTool.LoadGraph(parentPath);
-                            parent.PrepareGraph();
-                            VFXGraph.UnregisterAuthoringCompileData(AssetDatabase.GUIDFromAssetPath(parentPath));
+                            VfxGraphTool.PrepareForCompile(parent);
+                            VfxGraphTool.ForgetCompileCache(parentPath);
                             AssetDatabase.ImportAsset(parentPath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
                             log.AppendLine($"{lineNo}: refreshed {parentPath}");
                         }
@@ -607,7 +607,7 @@ public static class VfxGraphOps
                 if (dirty && g != null && snapshot != null)
                 {
                     g.Restore(snapshot);
-                    g.PrepareGraph(); g.UpdateSubAssets(); EditorUtility.SetDirty(g);
+                    VfxGraphTool.PrepareForCompile(g); g.UpdateSubAssets(); EditorUtility.SetDirty(g);
                     log.AppendLine($"stopped; rolled back to the state {snapshotAt}");
                 }
                 else log.AppendLine("stopped");
@@ -1026,11 +1026,15 @@ public static class VfxGraphOps
         object old = getMode.Invoke(g, null);
         try
         {
-            setMode.Invoke(g, new[] { Enum.Parse(old.GetType(), "Runtime") });
-            g.PrepareGraph();
+            setMode.Invoke(g, VfxGraphTool.ModeArgs(setMode, Enum.Parse(old.GetType(), "Runtime")));
+            VfxGraphTool.PrepareForCompile(g);
             g.errorManager.RefreshCompilationReport();
             var output = g.Compile();
+#if VFXAGENT_VFX_17_6
             object desc = output.assetDesc;
+#else
+            object desc = output; // 17.3 keeps systemDesc, shaderSourceDesc... on the output itself
+#endif
             var systems = desc.GetType().GetField("systemDesc", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(desc) as Array;
             var shaders = desc.GetType().GetField("shaderSourceDesc", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(desc) as Array;
             sb.Append($"compile: success={output.success} systems={systems?.Length} shaders={shaders?.Length}");
@@ -1038,7 +1042,7 @@ public static class VfxGraphOps
             foreach (var m in new VFXModel[] { g }.Concat(g.children).Concat(g.children.OfType<VFXContext>().SelectMany(c => c.children)))
                 foreach (var e in rep.GetDirtyModelErrors(m)) sb.Append($"\n  ERR [{m.name}] {e.type}: {e.error} {e.description}");
         }
-        finally { setMode.Invoke(g, new[] { old }); }
+        finally { setMode.Invoke(g, VfxGraphTool.ModeArgs(setMode, old)); }
         return sb.ToString();
     }
 }

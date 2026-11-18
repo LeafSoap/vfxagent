@@ -2,7 +2,7 @@
   "name": "com.fenyce.vfxagent",
   "version": "0.1.1",
   "displayName": "VFX Agent",
-  "unity": "6000.6",
+  "unity": "6000.3",
   "description": "Editor-only VFX Graph authoring and diagnostics API (VfxGraphTool, VfxGraphOps, VfxCoverage) built on the VFX Graph package's internal editor API, driven from the unity CLI.",
   "keywords": [
     "vfx",
@@ -12,7 +12,7 @@
     "agent"
   ],
   "dependencies": {
-    "com.unity.visualeffectgraph": "17.6.0"
+    "com.unity.visualeffectgraph": "17.3.0"
   },
   "license": "MIT",
   "author": {

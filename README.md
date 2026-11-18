@@ -71,7 +71,8 @@ Editor, and reads back a plain-text **description** of the result, including com
 
 ## Requirements
 
-- **Unity 6000.6** (tested on 6000.6.7f1). The package pins `"unity": "6000.6"`.
+- **Unity 6000.6** (tested on 6000.6.7f1) or **Unity 6000.3 LTS** (tested on 6000.3.25f1). The package declares the
+  minimum, `"unity": "6000.3"`. This demo project itself is a 6000.6 project.
 - **VFX Graph 17.6.0**, which ships with Unity 6000.6 and is declared as a dependency. Tested with **URP 17.6.0**
   (this demo) and **HDRP 17.6.0**; the self-test passes 39/39 on both.
 - The **`unity` CLI** (package `com.unity.pipeline`, experimental; this demo uses `0.10.0-exp.1`) to drive the Editor from a shell. The package's C# does
@@ -487,7 +488,9 @@ A typical agent loop is: **Describe → write a small script → Apply → read 
 - **Experimental library entries** appear only when VFX Graph's "experimental operators" preference is on.
 - **A rolled-back `tosubgraph`** leaves its new subgraph asset on disk.
 - **Unity Undo** doesn't record script edits. Use the script's rollback, version control or `copy` to a new asset.
-- **Tested only on Unity 6000.6.7f1 / VFX Graph 17.6.0 with URP and HDRP 17.6.0.** Other versions may differ in internal API.
+- **Tested on Unity 6000.6.7f1 / VFX Graph 17.6.0 (URP and HDRP) and Unity 6000.3.25f1 / VFX Graph 17.3.0 (URP only).**
+  Other versions (6000.4, 6000.5) are untested and may differ in internal API. The demo scripts use the 17.6 template
+  name `Simple_Loop.vfx` (17.3: `02_Simple_Loop.vfx`).
 
 ## Troubleshooting
 
